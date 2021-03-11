@@ -1,7 +1,8 @@
 use yew::prelude::*;
 
 enum Msg {
-    AddOne,
+    IncrementCounter,
+    DecrementCounter,
 }
 
 struct Model {
@@ -24,10 +25,14 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => {
+            Msg::IncrementCounter => {
                 self.value += 1;
                 // the value has changed so we need to
                 // re-render for it to appear on the page
+                true
+            }
+            Msg::DecrementCounter => {
+                self.value -= 1;
                 true
             }
         }
@@ -43,8 +48,9 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+                <button onclick=self.link.callback(|_| Msg::IncrementCounter)>{ "+1" }</button>
                 <p>{ self.value }</p>
+                <button onclick=self.link.callback(|_| Msg::DecrementCounter)>{ "-1" }</button>
             </div>
         }
     }
