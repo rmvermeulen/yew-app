@@ -2,7 +2,7 @@
   "build": {
     "distDir": "../dist",
     "devPath": "http://localhost:8080",
-    "beforeDevCommand": "trunk serve",
+    "beforeDevCommand": "",
     "beforeBuildCommand": "trunk build --release"
   },
   "ctx": {},

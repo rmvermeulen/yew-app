@@ -8,3 +8,7 @@ edition = "2018"
 
 [dependencies]
 yew = "0.17.3" 
+web-sys = "0.3.48"
+wasm-bindgen = { version = "0.2.71", features = [ "serde-serialize"] }
+js-sys = "0.3.48"
+serde = "1.0.124"
