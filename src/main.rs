@@ -1,17 +1,26 @@
 use js_sys::{Function, Promise, Reflect};
 use serde::Serialize;
+use std::time::Duration;
 use wasm_bindgen::prelude::*;
+use web_sys::Window;
 use yew::prelude::*;
+use yew::services::interval::{IntervalService, IntervalTask};
+use yew::services::ConsoleService;
+use yew::utils::window;
 enum Msg {
     IncrementCounter,
     DecrementCounter,
+    IncTimer,
+    Reload,
 }
 
 struct Model {
     // `ComponentLink` is like a reference to a component.
     // It can be used to send messages to the component
     link: ComponentLink<Self>,
-    value: i64,
+    counter: i64,
+    timer: i64,
+    _handles: Vec<IntervalTask>,
 }
 
 impl Component for Model {
@@ -19,19 +28,47 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, value: 0 }
+        // timer
+        let handle =
+            IntervalService::spawn(Duration::from_secs(1), link.callback(|_| Msg::IncTimer));
+
+        Self {
+            link,
+            counter: 0,
+            timer: 0,
+            _handles: vec![handle],
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        use Msg::*;
         match msg {
-            Msg::IncrementCounter => {
-                self.value += 1;
-                // the value has changed so we need to
+            Reload => {
+                window().location().reload();
+                false
+            }
+            IncTimer => {
+                self.timer += 1;
+                true
+            }
+            IncrementCounter => {
+                ConsoleService::log(&format!(
+                    "increment {} -> {}",
+                    self.counter,
+                    self.counter + 1
+                ));
+                self.counter += 1;
+                // the counter has changed so we need to
                 // re-render for it to appear on the page
                 true
             }
-            Msg::DecrementCounter => {
-                self.value -= 1;
+            DecrementCounter => {
+                ConsoleService::log(&format!(
+                    "decrement {} -> {}",
+                    self.counter,
+                    self.counter - 1
+                ));
+                self.counter -= 1;
                 true
             }
         }
@@ -45,12 +82,19 @@ impl Component for Model {
     }
 
     fn view(&self) -> Html {
+        let header = format!("my fancy app, alive for {} seconds", self.timer);
+        let reload = self.link.callback(|_| Msg::Reload);
+        let inc_counter = self.link.callback(|_| Msg::IncrementCounter);
+        let dec_counter = self.link.callback(|_| Msg::DecrementCounter);
         html! {
             <div>
-                <p>{"my fancy app!"}</p>
-                <button onclick=self.link.callback(|_| Msg::IncrementCounter)>{ "+1" }</button>
-                <p>{ self.value }</p>
-                <button onclick=self.link.callback(|_| Msg::DecrementCounter)>{ "-1" }</button>
+                <p>{header}</p>
+                <button onclick=reload>{"reload app"}</button>
+                <div>
+                    <button onclick=inc_counter>{ "+1" }</button>
+                    <p>{ self.counter }</p>
+                    <button onclick=dec_counter>{ "-1" }</button>
+                </div>
             </div>
         }
     }
@@ -64,7 +108,8 @@ struct Arg {
 
 fn main() {
     // web-sys
-    let window: web_sys::Window = web_sys::window().expect("window not available");
+    let window: Window = web_sys::window().expect("window not available");
+
     let key = JsValue::from_str("__TAURI__");
     let tauri = Reflect::get(&window, &key).expect("tauri");
 
@@ -77,10 +122,6 @@ fn main() {
     })
     .expect("Failed to serialize Arg");
     let response = promisified.call1(&tauri, &arg).expect("expected a promise");
-    let cb = Closure::wrap(Box::new(|result| {
-        println!("got response: {:?}", result);
-    }) as Box<dyn FnMut(JsValue)>);
-    Promise::resolve(&response).then(&cb);
     // window
     //     .alert_with_message(&format!("response: {:?}", response))
     //     .expect("failed to window::alert()");
