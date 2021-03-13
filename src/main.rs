@@ -1,3 +1,9 @@
+mod components;
+mod services;
+
+use components::{producer::Producer, subscriber::Subscriber};
+// use services::event_bus::Request;
+
 use std::time::Duration;
 // use wasm_bindgen::prelude::*;
 // use web_sys::Window;
@@ -5,7 +11,6 @@ use yew::prelude::*;
 use yew::services::interval::{IntervalService, IntervalTask};
 use yew::services::ConsoleService;
 use yew::utils::window;
-
 
 enum Msg {
     IncrementCounter,
@@ -34,7 +39,7 @@ impl Component for Model {
 
         Self {
             link,
-            counter: 0, 
+            counter: 0,
             timer: 0,
             _handles: vec![handle],
         }
@@ -87,20 +92,19 @@ impl Component for Model {
         let inc_counter = self.link.callback(|_| Msg::IncrementCounter);
         let dec_counter = self.link.callback(|_| Msg::DecrementCounter);
         html! {
-            <div>
+            <>
                 <p>{header}</p>
                 <button onclick=reload>{"reload app"}</button>
-                <div>
-                    <button onclick=inc_counter>{ "+1" }</button>
-                    <p>{ self.counter }</p>
-                    <button onclick=dec_counter>{ "-1" }</button>
-                </div>
-            </div>
+                <button onclick=inc_counter>{ "+1" }</button>
+                <p>{ self.counter }</p>
+                <button onclick=dec_counter>{ "-1" }</button>
+                <Producer />
+                <Subscriber />
+            </>
         }
     }
 }
 
 fn main() {
-
     yew::start_app::<Model>();
 }

@@ -1,19 +1,18 @@
-use js_sys::{Function, Promise, Reflect};
+use js_sys::{Function, Reflect};
 use serde::Serialize;
-use std::collections::HashSet;
-use std::time::Duration;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::prelude::*;
 use web_sys::Window;
 use yew::agent::*;
-use yew::prelude::*;
-use yew::services::interval::{IntervalService, IntervalTask};
-use yew::services::ConsoleService;
-use yew::utils::window;
-use yew::worker::*;
 
-pub mod event_bus;
-use event_bus::EventBus;
+// use std::collections::HashSet;
+// use std::time::Duration;
+// use yew::utils::window;
+// use yew::prelude::*;
+// use yew::services::interval::{IntervalService, IntervalTask};
+// use yew::services::ConsoleService;
+// use yew::worker::*;
+
+use crate::services::event_bus::EventBus;
 
 #[derive(Serialize)]
 struct ArgObject {
@@ -26,7 +25,8 @@ pub enum Msg {
 }
 
 pub struct TauriService {
-    link: AgentLink<EventBus>,
+    link: AgentLink<TauriService>,
+    event_bus: Dispatcher<EventBus>,
 }
 
 impl Agent for TauriService {
@@ -54,9 +54,11 @@ impl Agent for TauriService {
             .alert_with_message(&format!("response: {:?}", response))
             .expect("failed to window::alert()");
         // create the service
-        return TauriService { link };
+        return TauriService {
+            link,
+            event_bus: EventBus::dispatcher(),
+        };
     }
     fn update(&mut self, msg: Msg) {}
     fn handle_input(&mut self, input: Self::Input, hid: HandlerId) {}
-
 }

@@ -14,9 +14,13 @@ fn main() {
         Ok(command) => {
           match command {
             // definitions for your custom commands from Cmd here
-            MyCustomCommand { argument,callback,error } => {
+            MyCustomCommand {
+              argument,
+              callback,
+              error,
+            } => {
               //  your command code
-              println!("argument: '{}'", argument); 
+              println!("argument: '{}'", argument);
               tauri::execute_promise(_webview, move || Ok(15), callback, error)
             }
           }
