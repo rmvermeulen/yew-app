@@ -16,7 +16,7 @@ fn main() {
             // definitions for your custom commands from Cmd here
             MyCustomCommand { argument,callback,error } => {
               //  your command code
-              println!("argument: '{}'", argument);
+              println!("argument: '{}'", argument); 
               tauri::execute_promise(_webview, move || Ok(15), callback, error)
             }
           }
