@@ -1,12 +1,13 @@
-use js_sys::{Function, Promise, Reflect};
 use serde::Serialize;
 use std::time::Duration;
-use wasm_bindgen::prelude::*;
-use web_sys::Window;
 use yew::prelude::*;
 use yew::services::interval::{IntervalService, IntervalTask};
 use yew::services::ConsoleService;
 use yew::utils::window;
+
+mod services;
+use services::tauri;
+
 enum Msg {
     IncrementCounter,
     DecrementCounter,
@@ -44,7 +45,7 @@ impl Component for Model {
         use Msg::*;
         match msg {
             Reload => {
-                window().location().reload();
+                window().location().reload().unwrap();
                 false
             }
             IncTimer => {
@@ -100,30 +101,9 @@ impl Component for Model {
     }
 }
 
-#[derive(Serialize)]
-struct Arg {
-    cmd: String,
-    argument: String,
-}
-
 fn main() {
-    // web-sys
-    let window: Window = web_sys::window().expect("window not available");
-
-    let key = JsValue::from_str("__TAURI__");
-    let tauri = Reflect::get(&window, &key).expect("tauri");
-
-    let promisified = Reflect::get(&tauri, &JsValue::from_str("promisified"))
-        .expect("tauri::promisifed() function not found!");
-    let promisified = Function::from(promisified);
-    let arg = JsValue::from_serde(&Arg {
-        cmd: String::from("myCustomCommand"),
-        argument: String::from("some text"),
-    })
-    .expect("Failed to serialize Arg");
-    let response = promisified.call1(&tauri, &arg).expect("expected a promise");
-    // window
-    //     .alert_with_message(&format!("response: {:?}", response))
-    //     .expect("failed to window::alert()");
+    ConsoleService::log(&format!("sending message..."));
+    tauri::send_message(tauri::Msg::SayHi);
+    ConsoleService::log(&format!("sent message!"));
     yew::start_app::<Model>();
 }
