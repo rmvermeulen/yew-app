@@ -6,7 +6,7 @@ pub enum Msg {
 }
 
 pub struct Subscriber {
-    message: String,
+    messages: Vec<String>,
     _producer: Box<dyn Bridge<EventBus>>,
 }
 
@@ -16,7 +16,7 @@ impl Component for Subscriber {
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            message: "No message yet.".to_owned(),
+            messages: vec![],
             _producer: EventBus::bridge(link.callback(Msg::NewMessage)),
         }
     }
@@ -27,8 +27,8 @@ impl Component for Subscriber {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::NewMessage(s) => {
-                self.message = s;
+            Msg::NewMessage(mut s) => {
+                self.messages.push(s);
                 true
             }
         }
@@ -36,7 +36,7 @@ impl Component for Subscriber {
 
     fn view(&self) -> Html {
         html! {
-            <h1>{ &self.message }</h1>
+            <h1>{ format!("{:?}",&self.messages) }</h1>
         }
     }
 }
