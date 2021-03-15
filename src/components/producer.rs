@@ -1,14 +1,17 @@
 use crate::services::event_bus::{EventBus, Request};
+use crate::services::tauri::{Msg as TMsg, TauriService};
 use yew::agent::Dispatcher;
 use yew::prelude::*;
 
 pub enum Msg {
-    Clicked,
+    SendMessage,
+    UseTauriAPI,
 }
 
 pub struct Producer {
     link: ComponentLink<Producer>,
     event_bus: Dispatcher<EventBus>,
+    tauri: Dispatcher<TauriService>,
 }
 
 impl Component for Producer {
@@ -19,6 +22,7 @@ impl Component for Producer {
         Self {
             link,
             event_bus: EventBus::dispatcher(),
+            tauri: TauriService::dispatcher(),
         }
     }
 
@@ -26,11 +30,16 @@ impl Component for Producer {
         false
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender { 
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Clicked => {
+            Msg::SendMessage => {
                 self.event_bus
-                    .send(Request::EventBusMsg("Message received".to_owned()));
+                    .send(Request::EventBusMsg("producer::messages".to_owned()));
+                false
+            }
+            Msg::UseTauriAPI => {
+                self.tauri
+                    .send(TMsg::SendCommand("some command".to_owned()));
                 false
             }
         }
@@ -38,9 +47,14 @@ impl Component for Producer {
 
     fn view(&self) -> Html {
         html! {
-            <button onclick=self.link.callback(|_| Msg::Clicked)>
+            <>
+                <button onclick=self.link.callback(|_| Msg::SendMessage)>
                 { "PRESS ME" }
-            </button>
+                </button>
+                // <button onclick=self.link.callback(|_| Msg::UseTauriAPI)>
+                // { "USE TAURI" }
+                // </button>
+            </>
         }
     }
 }
